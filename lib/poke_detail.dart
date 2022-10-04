@@ -1,55 +1,117 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pokemon_flutter_2nd/const/pokeapi.dart';
+import './models/favorite.dart';
+import 'package:pokemon_flutter_2nd/models/pokemon.dart';
 
-class PokeDetial extends StatelessWidget {
-  const PokeDetial({Key? key}) : super(key: key);
-
+class PokeDetail extends StatelessWidget {
+  const PokeDetail({Key? key, required this.poke}) : super(key: key);
+  final Pokemon poke;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pokemon'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
+    return Consumer<FavoritesNotifier>(
+      builder: (context, favs, child) => Scaffold(
+        body: Container(
+          color: (pokeTypeColors[poke.types.first] ?? Colors.grey[100])
+              ?.withOpacity(.5),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(32),
-                  child: Image.network(
-                    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
-                    height: 100,
-                    width: 100,
+                ListTile(
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: const Text(
-                    'No.25',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  trailing: IconButton(
+                    icon: favs.isExist(poke.id)
+                        ? const Icon(Icons.star, color: Colors.orangeAccent)
+                        : const Icon(Icons.star_outline),
+                    onPressed: () => {
+                      favs.toggle(Favorite(pokeId: poke.id)),
+                    },
+                  ),
+                ), 
+                const SizedBox(height: 32),
+                Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Container(
+                        height: 280,
+                        width: 280,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(180),
+                          color: Colors.white.withOpacity(.5),
+                        ),
+                      ),
+                        ),
+                        SizedBox(
+                          child: Hero(
+                            tag: poke.name,
+                            child: CachedNetworkImage(
+                              imageUrl: poke.imageUrl,
+                              height: 250,
+                              width: 250,
+                            ),
+                          ),
+                        ),
+                  ],
                     ),
-                  ),
-                ),
+                    Container(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(90),
+                        color: Colors.white.withOpacity(.5),
+                      ),
+                      child: Text(
+                        '#${poke.id.toString().padLeft(3, "0")}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        '${poke.name.substring(0, 1).toUpperCase()}${poke.name.substring(1)}',
+                        style: const TextStyle(
+                          fontSize: 36, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: poke.types
+                                .map(
+                                  (type) => Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Chip(
+                                      backgroundColor:
+                                      pokeTypeColors[type] ?? Colors.grey,
+                                      label: Text(
+                                        type,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: (pokeTypeColors[type] ?? Colors.grey)
+                                          .computeLuminance() >
+                                          0.5
+                                          ? Colors.black
+                                          : Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                              ),
+                              const Spacer(),
               ],
             ),
-            const Text(
-              'pikachu',
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-            ),
-            Chip(
-              backgroundColor: Colors.yellow,
-              label: Text(
-                'electroc',
-                style: TextStyle(
-                    color: Colors.yellow.computeLuminance() > 0.5
-                        ? Colors.black
-                        : Colors.white),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
